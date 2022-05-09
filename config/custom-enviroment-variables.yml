@@ -1,0 +1,16 @@
+app:
+  name: APP_NAME
+  port: APP_PORT
+  env: NODE_ENV
+
+default:
+  type: DB_TYPE
+  host: DB_HOST
+  port: DB_PORT
+  username: DB_USERNAME
+  password: DB_PASSWORD
+  database: DB_DATABASE
+
+redis:
+  host: REDIS_HOST
+  port: REDIS_PORT

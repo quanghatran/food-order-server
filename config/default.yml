@@ -1,0 +1,28 @@
+app:
+  name: food-order-be
+  port: 3006
+  env: development
+  url: 127.0.0.1
+  prefix: api/v1
+
+default:
+  type: postgres
+  host: 192.168.1.144
+  port: 5432
+  username: postgres
+  password: postgres
+  database: food-order
+  logging: true
+  entities:
+    - 'dist/**/*.entity{.ts,.js}'
+
+redis:
+  host: localhost
+  port: 6379
+
+swagger:
+  isPublic: 1
+  title: 'Api document'
+  description: 'Project internal api description document'
+  version: '1.0'
+  server: 'http://localhost:3006'
