@@ -23,10 +23,6 @@ export const defaultConfig = {
   ...getConfig().get<DatabaseConfig>('default'),
   autoLoadEntities: true,
 };
-console.log(
-  '🚀 ~ file: database.config.ts ~ line 23 ~ defaultConfig',
-  defaultConfig,
-);
 
 export const typeOrmOptions: TypeOrmModuleAsyncOptions = {
   useFactory: () => {
