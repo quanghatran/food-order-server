@@ -2,9 +2,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Discount } from './discount.entity';
+import { User } from './user.entity';
+import { Store } from './store.entity';
+import { OrderItem } from './order-item.entity';
+import { Conversation } from './coversation.entity';
 
 export enum OrderStatus {
   PENDING = 'pending',
@@ -54,6 +61,21 @@ export class Order {
 
   @Column({ name: 'time_receive', type: 'timestamptz' })
   timeReceive: Date;
+
+  @ManyToOne(() => Discount, (discount) => discount.orders)
+  discount: Discount;
+
+  @ManyToOne(() => User, (user) => user.orders)
+  user: User;
+
+  @ManyToOne(() => Store, (store) => store.orders)
+  store: Store;
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
+  orderItems!: OrderItem[];
+
+  @OneToMany(() => Conversation, (conversation) => conversation.order)
+  conversations: Conversation[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

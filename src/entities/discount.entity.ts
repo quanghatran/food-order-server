@@ -2,12 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
+  ManyToOne, OneToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+  UpdateDateColumn
+} from "typeorm";
 import { Status } from './status.enum';
 import { Store } from './store.entity';
+import { Order } from "./order.entity";
 
 export enum DiscountType {
   PRICE = 'price',
@@ -42,6 +43,9 @@ export class Discount {
 
   @ManyToOne(() => Store, store => store.discounts)
   store: Store;
+
+  @OneToMany(() => Order, order => order.discount)
+  orders: Order[]
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

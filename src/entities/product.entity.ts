@@ -13,6 +13,8 @@ import { CategoryProduct } from './category-product.entity';
 import { Category } from './category.entity';
 import { Status } from './status.enum';
 import { Store } from './store.entity';
+import { OrderItem } from './order-item.entity';
+import { Order } from './order.entity';
 
 @Entity('products')
 export class Product {
@@ -45,6 +47,9 @@ export class Product {
     (categoryProduct) => categoryProduct.product,
   )
   categoryProducts: CategoryProduct[];
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
+  orderItems!: OrderItem[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

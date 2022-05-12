@@ -9,6 +9,9 @@ import {
 import { Discount } from './discount.entity';
 import { Product } from './product.entity';
 import { Status } from './status.enum';
+import { Order } from './order.entity';
+import { Notification } from "./notifycation.entity";
+import { StoreDetail } from "./store-detail.entity";
 
 @Entity('stores')
 export class Store {
@@ -53,6 +56,15 @@ export class Store {
 
   @OneToMany(() => Discount, (discount) => discount.store)
   discounts: Discount[];
+
+  @OneToMany(() => Order, (order) => order.store)
+  orders: Order[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
+
+  @OneToMany(() => StoreDetail, storeDetail => storeDetail.store)
+  details: StoreDetail[]
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

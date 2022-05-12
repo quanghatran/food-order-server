@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Order } from './order.entity';
+import { Notification } from './notifycation.entity';
 
 export enum Role {
   USER = 'user',
@@ -42,6 +45,12 @@ export class User {
 
   @Column({ name: 'is_verify', default: false })
   isVerify: boolean;
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
