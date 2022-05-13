@@ -20,6 +20,10 @@ redis:
   host: localhost
   port: 6379
 
+jwt:
+  secret: haha
+  expiresTime: 123456789
+
 swagger:
   isPublic: 1
   title: 'Api document'

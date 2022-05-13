@@ -1,7 +1,7 @@
 import { defaultConfig } from 'src/configs/database.config';
-import { DataSourceOptions } from 'typeorm';
+import { ConnectionOptions } from 'typeorm';
 
-const ORMConfig: DataSourceOptions = {
+const ORMConfig: ConnectionOptions = {
   ...defaultConfig,
   logging: true,
   logger: 'file',

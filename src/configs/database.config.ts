@@ -24,6 +24,8 @@ export const defaultConfig = {
   autoLoadEntities: true,
 };
 
+console.log(defaultConfig);
+
 export const typeOrmOptions: TypeOrmModuleAsyncOptions = {
   useFactory: () => {
     return {

@@ -17,6 +17,8 @@ import { initSwagger } from './share/swagger/swagger-setup';
 const appPort = config.get<number>('app.port');
 const prefix = config.get<string>('app.prefix');
 
+console.log(config);
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: true,
@@ -28,9 +30,9 @@ async function bootstrap() {
   app.use(useMorgan(loggingService.logger.access));
 
   app.setGlobalPrefix(prefix);
-  app.useGlobalInterceptors(new ResponseTransformInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalFilters(new UnknownExceptionsFilter());
+  // app.useGlobalInterceptors(new ResponseTransformInterceptor());
+  // app.useGlobalFilters(new HttpExceptionFilter());
+  // app.useGlobalFilters(new UnknownExceptionsFilter());
   app.useGlobalPipes(new BodyValidationPipe());
 
   const redisIoAdapter = new RedisIoAdapter(app);

@@ -33,7 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         data: newDataResponse,
       }).getResponse();
     }
-    response.status(200).json(excResponse);
+    response.json(excResponse);
     // this.logger.debug(exception.getStatus(), excResponse);
   }
 }

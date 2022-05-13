@@ -15,6 +15,17 @@ export function initSwagger(app: INestApplication) {
     .setVersion(swaggerConfig.version)
     .setContact('VuAnh Tu', 'github.com/iamtuuuuuu', 'vuanhtu111127@gmail.com')
     .addServer(swaggerConfig.server, 'host')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, configSwagger);

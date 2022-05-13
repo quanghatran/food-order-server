@@ -39,6 +39,7 @@ const createApiOperation = (defaultOptions: ApiOperationOptions) => {
 
 export const ApiEnumProperty = (options: ApiPropertyOptions) =>
   ApiProperty(enumProperty(options));
+
 export const ApiListOperation = createApiOperation({
   summary: 'List all',
 });

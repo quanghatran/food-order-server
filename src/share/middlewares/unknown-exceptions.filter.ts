@@ -19,6 +19,6 @@ export class UnknownExceptionsFilter implements ExceptionFilter {
       message: '',
       success: false,
     };
-    response.status(200).json(defaultResponse);
+    response.json(defaultResponse);
   }
 }

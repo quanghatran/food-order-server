@@ -36,6 +36,6 @@ export class BusinessException<TData> extends BaseException<TData> {
 
 export class Exception<TData> extends BaseException<TData> {
   constructor(payload: IResponse<TData>) {
-    super(payload, HttpStatus.OK);
+    super(payload, HttpStatus.BAD_REQUEST);
   }
 }
