@@ -1,12 +1,24 @@
-version: "3.8"
+version: '3'
 services:
-  db:
-    image: "postgres:14"
+  food-app:
+    build:
+      context: ""
+      dockerfile: ./Dockerfile
+    working_dir: /home/node/app
+    command: "pm2 restart ./apps.json && tail -f"
+    volumes:
+      - ../:/home/node/app
+    tty: true
+    container_name: food-app
+    depends_on:
+      - food-app-postgresql
+    user: node
+
+  food-app-postgresql:
+    image: postgres:14-alpine
+    container_name: food-app-postgresql
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
     ports:
       - "5432:5432"
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=food_order
