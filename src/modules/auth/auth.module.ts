@@ -9,10 +9,12 @@ import { UserModule } from '../user/user.module';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt-strategy';
+import { MailModule } from '../mailer/mailer.module';
 
 @Module({
   imports: [
     UserModule,
+    MailModule,
     JwtModule.register({
       secret: config.jwt?.secret,
       signOptions: {

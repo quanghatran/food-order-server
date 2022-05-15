@@ -4,12 +4,14 @@ import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/entities';
 import { AuthPayload } from './interfaces/auth-payload.interface';
+import { MailService } from '../mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly mailService: MailService,
   ) {}
 
   async hashPassword(password: string): Promise<string> {
