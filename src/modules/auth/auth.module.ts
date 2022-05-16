@@ -10,10 +10,13 @@ import { AuthService } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt-strategy';
 import { MailModule } from '../mailer/mailer.module';
+import { StoreModule } from '../store/store.module';
+import { StoreRepository } from 'src/repositories/store.repository';
 
 @Module({
   imports: [
     UserModule,
+    StoreModule,
     MailModule,
     JwtModule.register({
       secret: config.jwt?.secret,
@@ -21,7 +24,7 @@ import { MailModule } from '../mailer/mailer.module';
         expiresIn: config.jwt?.expiresTime,
       },
     }),
-    TypeOrmModule.forFeature([UserRepository]),
+    TypeOrmModule.forFeature([UserRepository, StoreRepository]),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
   controllers: [AuthController],
