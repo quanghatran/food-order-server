@@ -58,6 +58,22 @@ export class AuthService {
     }
   }
 
+  async mailForgetPassword(user: User | Store) {
+    const payload: AuthPayload = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+    };
+    const token = this.jwtService.sign(payload, { expiresIn: '30m' });
+    const content = `Click this link to reset your password:\n ${process.env.FE_URl}/reset-password/${token}`;
+    try {
+      this.mailService.sendMail(user.email, content);
+    } catch (error) {
+      throw new BadRequestException('Email is not exist!');
+    }
+  }
+
   async login(user: User) {
     const payload: AuthPayload = {
       id: user.id,

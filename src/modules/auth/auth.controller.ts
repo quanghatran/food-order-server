@@ -88,8 +88,6 @@ export class AuthController {
 
   @Post('/reactive')
   async reactive(@Body() email: EmailDto) {
-    console.log(email);
-
     const user =
       (await this.userService.findUserByEmail(email.email)) ||
       (await this.storeService.findUserByEmail(email.email));
@@ -100,6 +98,21 @@ export class AuthController {
     return {
       success: true,
       message: 'Please active account by verify link in your email!',
+    };
+  }
+
+  @Post('/forgot-password')
+  async forgot(@Body() email: EmailDto) {
+    const user =
+      (await this.userService.findUserByEmail(email.email)) ||
+      (await this.storeService.findUserByEmail(email.email));
+    if (!user || user.isVerify) {
+      throw new BadRequestException("Email dosen't exist or already active!");
+    }
+    this.authService.mailForgetPassword(user);
+    return {
+      success: true,
+      message: 'Check your mail to reset password!',
     };
   }
 
@@ -118,6 +131,26 @@ export class AuthController {
   @Get('/store/verify')
   async verifyStoreAccount(@GetUser() user) {
     await this.storeService.activeAccount(user.id);
+    return {
+      success: true,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtGuard)
+  @Get('/user/reset-password')
+  async resetUserAccount(@GetUser() user, @Body('password') password: string) {
+    await this.userService.resetPassword(user.id, password);
+    return {
+      success: true,
+    };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtGuard)
+  @Get('/store/reset-password')
+  async resetStoreAccount(@GetUser() user, @Body('password') password: string) {
+    await this.storeService.resetPassword(user.id, password);
     return {
       success: true,
     };

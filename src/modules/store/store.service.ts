@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { Store, User } from '../../entities';
+import { Store } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class StoreService {
@@ -45,6 +45,17 @@ export class StoreService {
       .createQueryBuilder()
       .update(Store)
       .set({ isVerify: true })
+      .where('id = :id', { id })
+      .execute();
+  }
+
+  async resetPassword(id: string, password: string) {
+    const saltOrRounds = 10;
+    const hashPassword = await bcrypt.hash(password, saltOrRounds);
+    return this.storeRepository
+      .createQueryBuilder()
+      .update(Store)
+      .set({ password: hashPassword })
       .where('id = :id', { id })
       .execute();
   }
