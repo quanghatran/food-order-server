@@ -27,4 +27,8 @@ export class CategoryService {
       },
     );
   }
+
+  delete(id: string) {
+    return this.categoryRepository.delete({ id });
+  }
 }

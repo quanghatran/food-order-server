@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -41,5 +42,14 @@ export class CategoryController {
   @UseGuards(JwtGuard)
   edit(@Param('id') id: string, @Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.edit(id, createCategoryDto);
+  }
+
+  @Delete('/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  delete(@Param('id') id: string) {
+    return this.categoryService.delete(id);
   }
 }
