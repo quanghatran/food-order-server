@@ -36,7 +36,7 @@ export class Product {
   @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
   status: Status;
 
-  @Column({ name: 'bought_num', type: 'int' })
+  @Column({ name: 'bought_num', type: 'int', default: 0 })
   boughtNum: number;
 
   @ManyToOne(() => Store, (store) => store.products)

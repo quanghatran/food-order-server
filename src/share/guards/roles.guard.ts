@@ -28,6 +28,7 @@ export class RolesGuard implements CanActivate {
     if (requiredRoles.includes(Role.Store)) {
       const store = await this.storeService.findStore(user.id);
       if (!store) return false;
+      return true;
     }
     const userFound = await this.userService.findById(user.id);
     if (!userFound) return false;

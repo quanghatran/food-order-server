@@ -4,10 +4,16 @@ import { StoreService } from './store.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mailer/mailer.module';
 import { StoreRepository } from 'src/repositories/store.repository';
+import { ProductRepository } from '../../repositories';
+import { UserModule } from "../user/user.module";
 
 @Module({
   providers: [StoreService],
-  imports: [TypeOrmModule.forFeature([StoreRepository]), MailModule],
+  imports: [
+    TypeOrmModule.forFeature([StoreRepository, ProductRepository]),
+    MailModule,
+    UserModule
+  ],
   controllers: [StoreController],
   exports: [StoreService],
 })
