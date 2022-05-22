@@ -159,7 +159,6 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(@GetUser() user, @Body() credential: CredentialsDto) {
-    console.log(user);
 
     return this.authService.login(user);
   }

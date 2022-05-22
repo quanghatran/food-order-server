@@ -8,11 +8,9 @@ import {
 } from 'typeorm';
 import { Order } from './order.entity';
 import { Notification } from './notifycation.entity';
+import { Role } from './role.enum';
 
-export enum Role {
-  USER = 'user',
-  ADMIN = 'admin',
-}
+type UserRole = Exclude<Role, Role.Store>;
 
 @Entity('users')
 export class User {
@@ -41,7 +39,7 @@ export class User {
   address: string;
 
   @Column({ type: 'enum', enum: ['user', 'admin'], default: 'user' })
-  role: Role;
+  role: UserRole;
 
   @Column({ name: 'is_verify', default: false })
   isVerify: boolean;

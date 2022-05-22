@@ -28,6 +28,10 @@ export class StoreService {
     });
   }
 
+  findStore(id: string) {
+    return this.storeRepository.findOne({ where: { id } });
+  }
+
   async create(store: CreateStoreDto) {
     const newStore = new Store();
     newStore.name = store.name;
@@ -39,7 +43,6 @@ export class StoreService {
   }
 
   async activeAccount(id: string) {
-    console.log(id);
 
     return this.storeRepository
       .createQueryBuilder()

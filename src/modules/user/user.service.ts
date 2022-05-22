@@ -4,6 +4,7 @@ import { CreateUserDto } from '../auth/dto/create-user.dto';
 import { User } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dto/update-user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -25,6 +26,10 @@ export class UserService {
         email,
       },
     });
+  }
+
+  findById(id: string) {
+    return this.userRepository.findOne({ id });
   }
 
   async create(user: CreateUserDto) {
@@ -54,5 +59,31 @@ export class UserService {
       .set({ password: hashPassword })
       .where('id = :id', { id })
       .execute();
+  }
+
+  async getMe(id: string) {
+    return this.userRepository.findOne({
+      where: {
+        id,
+      },
+      select: [
+        'id',
+        'address',
+        'avatar',
+        'email',
+        'phoneNumber',
+        'role',
+        'createdAt',
+      ],
+    });
+  }
+
+  async edit(id: string, data: UpdateUserDto) {
+    return this.userRepository.update(
+      {
+        id,
+      },
+      { ...data },
+    );
   }
 }
