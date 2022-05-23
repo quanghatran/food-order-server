@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Product, Store } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
@@ -89,17 +93,36 @@ export class StoreService {
     storeId: string,
     productId: string,
     updateProductDto?: UpdateProductDto,
-    linkImages?: string[],
+    images?: string[],
   ) {
     const product = await this.productRepository.findOne({
-      where: {
-        id: productId,
-      },
-      // select: ['storeId'],
+      where: { id: productId },
     });
-    console.log(product);
-    const store = product.store;
-    console.log(store);
-    return 1;
+    if (!product) throw new BadRequestException('Product not found');
+    if (product.storeId !== storeId) {
+      throw new UnauthorizedException('You can update your products');
+    }
+    const updated =
+      images.length > 0
+        ? await this.productRepository.update(
+            { id: productId },
+            { ...updateProductDto, images },
+          )
+        : await this.productRepository.update(
+            { id: productId },
+            { ...updateProductDto },
+          );
+    return updated;
+  }
+
+  async deleteProduct(productId: string, storeId: string) {
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+    if (!product) throw new BadRequestException('Product not found');
+    if (product.storeId !== storeId) {
+      throw new UnauthorizedException('You can update your products');
+    }
+    return this.productRepository.delete({ id: productId });
   }
 }

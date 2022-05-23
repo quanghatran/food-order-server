@@ -2,6 +2,7 @@ import { StoreService } from './store.service';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -94,7 +95,6 @@ export class StoreController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: 'multipart/form-data',
-    required: true,
     schema: {
       type: 'object',
       properties: {
@@ -104,10 +104,12 @@ export class StoreController {
             type: 'string',
             format: 'binary',
           },
+          nullable: true,
         },
         name: { type: 'string', nullable: true },
         description: { type: 'string', nullable: true },
         price: { type: 'number', nullable: true },
+        status: { enum: ['active', 'inactive'], nullable: true },
       },
     },
   })
@@ -132,5 +134,14 @@ export class StoreController {
       updateProductDto,
       linksImage,
     );
+  }
+
+  @Delete('/product/:productId')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  deleteProduct(@Param('productId') productId: string, @GetUser() user) {
+    return this.storeService.deleteProduct(productId, user.id);
   }
 }
