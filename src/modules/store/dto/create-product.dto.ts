@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductDto {
   @IsString()
@@ -10,4 +10,8 @@ export class CreateProductDto {
 
   @IsNumber()
   price: number;
+
+  @IsArray()
+  @Type(() => String)
+  categories: string[];
 }

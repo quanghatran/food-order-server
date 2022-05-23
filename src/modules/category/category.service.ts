@@ -7,9 +7,10 @@ import { Category } from '../../entities';
 export class CategoryService {
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
-  createCategory(cate: CreateCategoryDto) {
+  createCategory(cate: CreateCategoryDto, image: string) {
     const newCategory = new Category();
     newCategory.name = cate.name;
+    newCategory.image = image;
     return this.categoryRepository.save(newCategory);
   }
 
@@ -17,15 +18,26 @@ export class CategoryService {
     return this.categoryRepository.find({});
   }
 
-  edit(id: string, createCategoryDto: CreateCategoryDto) {
-    return this.categoryRepository.update(
-      {
-        id,
-      },
-      {
-        name: createCategoryDto.name,
-      },
-    );
+  edit(id: string, createCategoryDto: CreateCategoryDto, image: string) {
+    return image !== ''
+      ? this.categoryRepository.update(
+          {
+            id,
+          },
+          {
+            name: createCategoryDto.name,
+            image,
+          },
+        )
+      : this.categoryRepository.update(
+          {
+            id,
+          },
+          {
+            name: createCategoryDto.name,
+            image,
+          },
+        );
   }
 
   delete(id: string) {

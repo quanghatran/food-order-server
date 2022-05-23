@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Product, Store } from '../../entities';
+import { CategoryProduct, Product, Store } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { ProductRepository } from '../../repositories';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { getConnection } from 'typeorm';
 
 @Injectable()
 export class StoreService {
@@ -79,14 +80,22 @@ export class StoreService {
     createProductDto: CreateProductDto,
     images: string[],
   ) {
-    const store = await this.storeRepository.findOne({ id: storeId });
     const newProduct = new Product();
     newProduct.name = createProductDto.name;
     newProduct.images = images;
     newProduct.description = createProductDto.description;
     newProduct.price = createProductDto.price;
-    newProduct.store = store;
-    return this.productRepository.save(newProduct);
+    newProduct.storeId = storeId;
+     await getConnection().transaction(async (entityManager) => {
+      await entityManager.save(newProduct);
+      for (const categoryId of createProductDto.categories) {
+        const categoryProduct = new CategoryProduct();
+        categoryProduct.productId = newProduct.id;
+        categoryProduct.categoryId = categoryId;
+        await entityManager.save(categoryProduct);
+      }
+    });
+     return newProduct
   }
 
   async updateProduct(

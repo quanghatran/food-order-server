@@ -6,15 +6,20 @@ import {
   Param,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { Roles } from '../../share/decorators/roles.decorator';
 import { Role } from '../../entities';
 import { RolesGuard } from '../../share/guards/roles.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../../share/multer/multer-config';
+import uploadImage from '../../share/multer/uploader';
 
 @ApiTags('category')
 @Controller('category')
@@ -23,11 +28,28 @@ export class CategoryController {
 
   @Post('/')
   @ApiBearerAuth('JWT-auth')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          nullable: false,
+        },
+        name: { type: 'string', nullable: false },
+      },
+    },
+  })
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @UseGuards(JwtGuard)
-  create(@Body() cate: CreateCategoryDto) {
-    return this.categoryService.createCategory(cate);
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async create(@Body() cate: CreateCategoryDto, @UploadedFile() image) {
+    const linkImage = await uploadImage(image.path);
+    return this.categoryService.createCategory(cate, linkImage);
   }
 
   @Get('/')
@@ -37,11 +59,31 @@ export class CategoryController {
 
   @Patch('/:id')
   @ApiBearerAuth('JWT-auth')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          nullable: true,
+        },
+        name: { type: 'string', nullable: true },
+      },
+    },
+  })
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @UseGuards(JwtGuard)
-  edit(@Param('id') id: string, @Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.edit(id, createCategoryDto);
+  async edit(
+    @Param('id') id: string,
+    @Body() createCategoryDto: CreateCategoryDto,
+    @UploadedFile() image,
+  ) {
+    const link = image ? await uploadImage(image) : '';
+    return this.categoryService.edit(id, createCategoryDto, link);
   }
 
   @Delete('/:id')

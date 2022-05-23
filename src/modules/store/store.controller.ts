@@ -60,10 +60,20 @@ export class StoreController {
             type: 'string',
             format: 'binary',
           },
+          nullable: false,
         },
-        name: { type: 'string' },
-        description: { type: 'string' },
-        price: { type: 'number' },
+        name: { type: 'string', nullable: false },
+        description: { type: 'string', nullable: false },
+        price: { type: 'number', nullable: false },
+        categories: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          nullable: false,
+          description:
+            'Cái swagger này lỗi array, e chưa thấy fix kiểu gì. Dùng postman cái này nha a',
+        },
       },
     },
   })
@@ -81,13 +91,12 @@ export class StoreController {
       const link = await uploadImage(image.path);
       linksImage.push(link);
     }
-    const newProduct = await this.storeService.addProduct(
+    console.log(createProductDto);
+    return await this.storeService.addProduct(
       user.id,
       createProductDto,
       linksImage,
     );
-    delete newProduct.store;
-    return newProduct;
   }
 
   @Patch('/product/:productId')
