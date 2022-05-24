@@ -7,15 +7,19 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { GetUser } from 'src/share/decorators/get-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ProductService } from '../product/product.service';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly productService: ProductService,
+  ) {}
 
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtGuard)
@@ -32,5 +36,15 @@ export class UserController {
     return {
       success: true,
     };
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({summary: 'get products nearest with address of user'})
+  @UseGuards(JwtGuard)
+  @Get('/product/nearest')
+  async getNearestProduct(@GetUser() user) {
+    const userProfile = await this.userService.findById(user.id);
+    const address = userProfile.address;
+    return this.productService.nearestProduct(address);
   }
 }
