@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -62,7 +63,11 @@ export class Order {
   @Column({ name: 'time_receive', type: 'timestamptz' })
   timeReceive: Date;
 
+  @Column('uuid', { nullable: false })
+  discountId: string;
+
   @ManyToOne(() => Discount, (discount) => discount.orders)
+  @JoinColumn({ name: 'discountId' })
   discount: Discount;
 
   @ManyToOne(() => User, (user) => user.orders)

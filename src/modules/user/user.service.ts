@@ -6,12 +6,21 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from 'src/repositories';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { Store, User } from '../../entities';
+import {
+  DiscountType,
+  Order,
+  OrderItem,
+  OrderStatus,
+  User,
+} from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { StoreService } from '../store/store.service';
+import { getConnection } from 'typeorm';
+import { ProductService } from '../product/product.service';
+
 @Injectable()
 export class UserService {
   constructor(
@@ -19,6 +28,7 @@ export class UserService {
     private readonly mailService: MailService,
     @Inject(forwardRef(() => StoreService))
     private readonly storeService: StoreService,
+    private readonly productService: ProductService,
   ) {}
 
   async findUserByPhoneNumber(phoneNumber: string) {
@@ -104,5 +114,44 @@ export class UserService {
       throw new BadRequestException(
         'You must be select products in one store per order',
       );
+
+    await getConnection().transaction(async (entityManager) => {
+      const newOrder = new Order();
+      newOrder.status = OrderStatus.PENDING;
+      newOrder.paymentType = createOrderDto.paymentType;
+      newOrder.isPayment = false;
+      if (createOrderDto.discountId)
+        newOrder.discountId = createOrderDto.discountId;
+      for (const item of createOrderDto.items) {
+        const newItem = new OrderItem();
+        newItem.orderId = newOrder.id;
+        newItem.productId = item.productId;
+        newItem.quantity = item.quantity;
+        await entityManager.save(newItem);
+      }
+      const productItems: OrderItem[] = await entityManager.find(OrderItem, {
+        where: {
+          orderId: newOrder.id,
+        },
+      });
+      const orderPrices: number[] = productItems.map((productItem) => {
+        return productItem.product.price * productItem.quantity;
+      });
+      let totalPrice: number = orderPrices.reduce((a, b) => a + b);
+      if (newOrder.discountId) {
+        if ((newOrder.discount.discountType = DiscountType.PRICE)) {
+          totalPrice = totalPrice - newOrder.discount.discountPrice;
+          totalPrice = totalPrice >= 0 ? totalPrice : 0;
+        }
+        totalPrice =
+          totalPrice - totalPrice * newOrder.discount.discountPercent;
+      }
+      newOrder.totalPrice = totalPrice;
+      await entityManager.save(newOrder);
+      return {
+        order: newOrder,
+        orderItems: productItems,
+      };
+    });
   }
 }

@@ -57,6 +57,6 @@ export class UserController {
   async order(@GetUser() user, @Body() createOrderDto: CreateOrderDto) {
     const userProfile = await this.userService.findById(user.id);
     const address = userProfile.address;
-    return this.productService.nearestProduct(address);
+    return this.userService.order(user.id, createOrderDto);
   }
 }

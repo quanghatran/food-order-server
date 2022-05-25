@@ -14,6 +14,12 @@ export class ProductService {
     return this.productRepository.find();
   }
 
+  async findProductsByProductIds(productIds: string[]) {
+    return await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+  }
+
   async nearestProduct(address: string) {
     if (!address)
       throw new BadRequestException('Please update address before!');

@@ -177,4 +177,6 @@ export class StoreService {
     });
     return products.map((product) => product.store);
   }
+
+
 }
