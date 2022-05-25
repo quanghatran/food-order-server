@@ -20,9 +20,10 @@ import { RolesGuard } from '../../share/guards/roles.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../../share/multer/multer-config';
 import uploadImage from '../../share/multer/uploader';
-import { ApiMultiFile } from '../../share/swagger/swagger-decorators';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateDiscountDto } from './dto/create-discount.dto';
+import { UpdateDiscountDto } from './dto/update-discount.dto';
 
 @ApiTags('Store')
 @Controller('store')
@@ -152,5 +153,30 @@ export class StoreController {
   @UseGuards(JwtGuard)
   deleteProduct(@Param('productId') productId: string, @GetUser() user) {
     return this.storeService.deleteProduct(productId, user.id);
+  }
+
+  @Post('/discount/create')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  createDiscount(
+    @Body() createDiscountDto: CreateDiscountDto,
+    @GetUser() user,
+  ) {
+    return this.storeService.addDiscount(user.id, createDiscountDto);
+  }
+
+  @Post('/discount/update/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  updateDiscount(
+    @Param('id') id: string,
+    @Body() updateDiscountDto: UpdateDiscountDto,
+    @GetUser() user,
+  ) {
+    return this.storeService.editDiscount(user.id, id, updateDiscountDto);
   }
 }

@@ -4,14 +4,16 @@ import {
   Controller,
   Get,
   Patch,
+  Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { GetUser } from 'src/share/decorators/get-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ProductService } from '../product/product.service';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -39,10 +41,20 @@ export class UserController {
   }
 
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({summary: 'get products nearest with address of user'})
+  @ApiOperation({ summary: 'get products nearest with address of user' })
   @UseGuards(JwtGuard)
   @Get('/product/nearest')
   async getNearestProduct(@GetUser() user) {
+    const userProfile = await this.userService.findById(user.id);
+    const address = userProfile.address;
+    return this.productService.nearestProduct(address);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'order products' })
+  @UseGuards(JwtGuard)
+  @Post('/order')
+  async order(@GetUser() user, @Body() createOrderDto: CreateOrderDto) {
     const userProfile = await this.userService.findById(user.id);
     const address = userProfile.address;
     return this.productService.nearestProduct(address);

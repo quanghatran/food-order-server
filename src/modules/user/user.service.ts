@@ -1,15 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { UserRepository } from 'src/repositories';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
-import { User } from '../../entities';
+import { Store, User } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { StoreService } from '../store/store.service';
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly mailService: MailService,
+    @Inject(forwardRef(() => StoreService))
+    private readonly storeService: StoreService,
   ) {}
 
   async findUserByPhoneNumber(phoneNumber: string) {
@@ -85,5 +94,15 @@ export class UserService {
       },
       { ...data },
     );
+  }
+
+  async order(userId, createOrderDto: CreateOrderDto) {
+    // check all products in one store
+    const productIds = createOrderDto.items.map((item) => item.productId);
+    const store = await this.storeService.findStoresByProductIds(productIds);
+    if (store.length !== 1)
+      throw new BadRequestException(
+        'You must be select products in one store per order',
+      );
   }
 }

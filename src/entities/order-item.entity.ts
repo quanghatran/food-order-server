@@ -14,6 +14,9 @@ export class OrderItem {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ nullable: false, default: 1 })
+  quantity: number;
+
   @Column()
   orderId!: string;
 

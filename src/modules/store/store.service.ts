@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CategoryProduct, Product, Store } from '../../entities';
+import { CategoryProduct, Discount, Product, Store } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
@@ -11,13 +11,17 @@ import * as bcrypt from 'bcrypt';
 import { ProductRepository } from '../../repositories';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { getConnection } from 'typeorm';
+import { getConnection, In } from 'typeorm';
+import { DiscountRepository } from '../../repositories/discount.repository';
+import { CreateDiscountDto } from './dto/create-discount.dto';
+import { UpdateDiscountDto } from './dto/update-discount.dto';
 
 @Injectable()
 export class StoreService {
   constructor(
     private readonly storeRepository: StoreRepository,
     private readonly productRepository: ProductRepository,
+    private readonly discountRepository: DiscountRepository,
     private readonly mailService: MailService,
   ) {}
 
@@ -86,7 +90,7 @@ export class StoreService {
     newProduct.description = createProductDto.description;
     newProduct.price = createProductDto.price;
     newProduct.storeId = storeId;
-     await getConnection().transaction(async (entityManager) => {
+    await getConnection().transaction(async (entityManager) => {
       await entityManager.save(newProduct);
       for (const categoryId of createProductDto.categories) {
         const categoryProduct = new CategoryProduct();
@@ -95,7 +99,7 @@ export class StoreService {
         await entityManager.save(categoryProduct);
       }
     });
-     return newProduct
+    return newProduct;
   }
 
   async updateProduct(
@@ -133,5 +137,44 @@ export class StoreService {
       throw new UnauthorizedException('You can update your products');
     }
     return this.productRepository.delete({ id: productId });
+  }
+
+  async addDiscount(storeId: string, createDiscountDto: CreateDiscountDto) {
+    const discount = await this.discountRepository.create({
+      ...createDiscountDto,
+      storeId,
+    });
+    await this.discountRepository.save(discount);
+    return discount;
+  }
+
+  async editDiscount(
+    storeId: string,
+    discountId: string,
+    updateDiscountDto: UpdateDiscountDto,
+  ) {
+    const discount = await this.discountRepository.findOne({
+      id: discountId,
+    });
+    if (!discount || discount.storeId !== storeId)
+      throw new BadRequestException(
+        'Discount is not exist or it not not owned by you',
+      );
+    return this.discountRepository.update(
+      {
+        id: discountId,
+        storeId,
+      },
+      {
+        ...updateDiscountDto,
+      },
+    );
+  }
+
+  async findStoresByProductIds(productIds: string[]) {
+    const products = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+    return products.map((product) => product.store);
   }
 }

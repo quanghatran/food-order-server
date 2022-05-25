@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
-import { Store, User } from 'src/entities';
+import { Role, Store, User } from 'src/entities';
 import { AuthPayload } from './interfaces/auth-payload.interface';
 import { MailService } from '../mailer/mailer.service';
 import { StoreService } from '../store/store.service';
@@ -74,7 +74,7 @@ export class AuthService {
     }
   }
 
-  async login(user: User) {
+  async login(user: any) {
     const payload: AuthPayload = {
       id: user.id,
       name: user.name,
@@ -82,9 +82,10 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
     };
 
+    const role = user.role ? user.role : Role.Store;
     return {
       accessToken: this.jwtService.sign(payload),
-      user: { ...payload },
+      user: { ...payload, role },
     };
   }
 }
