@@ -49,7 +49,7 @@ export class AuthController {
     }
     user.password = await this.authService.hashPassword(user.password);
     const newUser = await this.userService.create(user);
-    await this.authService.mailAuhthenticateUser(newUser);
+    await this.authService.mailAuthenticateUser(newUser);
     return {
       success: true,
       message:
@@ -78,7 +78,7 @@ export class AuthController {
 
     store.password = await this.authService.hashPassword(store.password);
     const newStore = await this.storeService.create(store);
-    await this.authService.mailAuhthenticateUser(newStore);
+    await this.authService.mailAuthenticateUser(newStore);
     return {
       success: true,
       message:
@@ -94,7 +94,7 @@ export class AuthController {
     if (!user || user.isVerify) {
       throw new BadRequestException("Email dosen't exist or already active!");
     }
-    this.authService.mailAuhthenticateUser(user);
+    this.authService.mailAuthenticateUser(user);
     return {
       success: true,
       message: 'Please active account by verify link in your email!',

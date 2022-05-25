@@ -42,7 +42,7 @@ export class AuthService {
     return user;
   }
 
-  async mailAuhthenticateUser(user: User | Store) {
+  async mailAuthenticateUser(user: User | Store) {
     const payload: AuthPayload = {
       id: user.id,
       name: user.name,
@@ -50,9 +50,9 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
     };
     const token = this.jwtService.sign(payload, { expiresIn: '30m' });
-    const content = `Click this link to actice your account:\n ${process.env.FE_URl}/verify/${token}`;
+    const content = `Click this link to active your account:\n ${process.env.FE_URl}/auth/verify/${token}`;
     try {
-      this.mailService.sendMail(user.email, content);
+      await this.mailService.sendMail(user.email, content);
     } catch (error) {
       throw new BadRequestException('Email is not exist!');
     }
@@ -68,7 +68,7 @@ export class AuthService {
     const token = this.jwtService.sign(payload, { expiresIn: '30m' });
     const content = `Click this link to reset your password:\n ${process.env.FE_URl}/reset-password/${token}`;
     try {
-      this.mailService.sendMail(user.email, content);
+      await this.mailService.sendMail(user.email, content);
     } catch (error) {
       throw new BadRequestException('Email is not exist!');
     }
