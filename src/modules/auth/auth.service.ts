@@ -50,8 +50,8 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
     };
     const token = this.jwtService.sign(payload, { expiresIn: '30m' });
-    console.log(process.env.FE_URl, 'process.env.FE_URl');
-    const content = `Click this link to active your account:\n ${process.env.FE_URl}/auth/verify/${token}`;
+    console.log(process.env.FE_URL, 'process.env.FE_UR');
+    const content = `Click this link to active your account:\n ${process.env.FE_URL}/auth/verify/${token}`;
     try {
       await this.mailService.sendMail(user.email, content);
     } catch (error) {
@@ -67,7 +67,7 @@ export class AuthService {
       phoneNumber: user.phoneNumber,
     };
     const token = this.jwtService.sign(payload, { expiresIn: '30m' });
-    const content = `Click this link to reset your password:\n ${process.env.FE_URl}/reset-password/${token}`;
+    const content = `Click this link to reset your password:\n ${process.env.FE_URL}/reset-password/${token}`;
     try {
       await this.mailService.sendMail(user.email, content);
     } catch (error) {
