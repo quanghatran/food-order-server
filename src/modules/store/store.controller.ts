@@ -24,6 +24,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
+import { UpdateOrder } from './dto/order.dto';
 
 @ApiTags('Store')
 @Controller('store')
@@ -167,7 +168,7 @@ export class StoreController {
     return this.storeService.addDiscount(user.id, createDiscountDto);
   }
 
-  @Post('/discount/update/:id')
+  @Patch('/discount/update/:id')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.Store)
@@ -178,5 +179,22 @@ export class StoreController {
     @GetUser() user,
   ) {
     return this.storeService.editDiscount(user.id, id, updateDiscountDto);
+  }
+
+  @Patch('/order/update/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  async updateOrder(
+    @Param('id') id: string,
+    @Body() updateOrder: UpdateOrder,
+    @GetUser() user,
+  ) {
+    await this.storeService.updateOrder(user.id, id, updateOrder);
+    return {
+      success: true,
+      message: 'update order successfully!',
+    };
   }
 }

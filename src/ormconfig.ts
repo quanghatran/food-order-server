@@ -4,7 +4,8 @@ import { ConnectionOptions } from 'typeorm';
 const ORMConfig: ConnectionOptions = {
   ...defaultConfig,
   logging: true,
-  logger: 'file',
+  debug: true,
+  logger: 'debug',
   migrationsTableName: 'migrate_tables',
   synchronize: true,
   // Allow both start:prod and start:dev to use migrations

@@ -1,7 +1,7 @@
-import { EntityRepository, Repository } from "typeorm";
-import { Order, Store } from "../entities";
+import { EntityRepository, Repository } from 'typeorm';
+import { Order } from '../entities';
 
-@EntityRepository(Store)
+@EntityRepository(Order)
 export class OrderRepository extends Repository<Order> {
   constructor() {
     super();

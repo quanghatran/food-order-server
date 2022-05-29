@@ -3,14 +3,17 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { UserRepository } from 'src/repositories';
+import { OrderRepository, UserRepository } from 'src/repositories';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import {
+  Discount,
   DiscountType,
   Order,
   OrderItem,
   OrderStatus,
+  Status,
   User,
 } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
@@ -20,11 +23,14 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { StoreService } from '../store/store.service';
 import { getConnection } from 'typeorm';
 import { ProductService } from '../product/product.service';
+import { DiscountRepository } from '../../repositories/discount.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly discountRepository: DiscountRepository,
+    private readonly orderRepository: OrderRepository,
     private readonly mailService: MailService,
     @Inject(forwardRef(() => StoreService))
     private readonly storeService: StoreService,
@@ -106,22 +112,36 @@ export class UserService {
     );
   }
 
-  async order(userId, createOrderDto: CreateOrderDto) {
+  async order(userId: string, createOrderDto: CreateOrderDto) {
     // check all products in one store
     const productIds = createOrderDto.items.map((item) => item.productId);
-    const store = await this.storeService.findStoresByProductIds(productIds);
+    let store = await this.storeService.findStoresByProductIds(productIds);
+    let discount: Discount;
+
+    store = [...new Set(store)];
     if (store.length !== 1)
       throw new BadRequestException(
         'You must be select products in one store per order',
       );
 
-    await getConnection().transaction(async (entityManager) => {
+    const result = await getConnection().transaction(async (entityManager) => {
       const newOrder = new Order();
       newOrder.status = OrderStatus.PENDING;
       newOrder.paymentType = createOrderDto.paymentType;
       newOrder.isPayment = false;
-      if (createOrderDto.discountId)
+      newOrder.userId = userId;
+      newOrder.timeReceive = createOrderDto.timeReceive;
+      newOrder.storeId = store[0];
+      if (createOrderDto.discountId) {
+        discount = await this.discountRepository.findOne({
+          where: { id: createOrderDto.discountId },
+        });
+        if (!discount)
+          throw new BadRequestException('discount dose not exist!');
         newOrder.discountId = createOrderDto.discountId;
+      }
+      await entityManager.save(newOrder);
+
       for (const item of createOrderDto.items) {
         const newItem = new OrderItem();
         newItem.orderId = newOrder.id;
@@ -133,18 +153,23 @@ export class UserService {
         where: {
           orderId: newOrder.id,
         },
+        relations: ['product'],
       });
       const orderPrices: number[] = productItems.map((productItem) => {
+        if (productItem.product.status === Status.INACTIVE) {
+          throw new BadRequestException(
+            `product ${productItem.product.name} inactive`,
+          );
+        }
         return productItem.product.price * productItem.quantity;
       });
       let totalPrice: number = orderPrices.reduce((a, b) => a + b);
-      if (newOrder.discountId) {
-        if ((newOrder.discount.discountType = DiscountType.PRICE)) {
-          totalPrice = totalPrice - newOrder.discount.discountPrice;
+      if (discount) {
+        if ((discount.discountType = DiscountType.PRICE)) {
+          totalPrice = totalPrice - discount.discountPrice;
           totalPrice = totalPrice >= 0 ? totalPrice : 0;
         }
-        totalPrice =
-          totalPrice - totalPrice * newOrder.discount.discountPercent;
+        totalPrice = totalPrice - totalPrice * discount.discountPercent;
       }
       newOrder.totalPrice = totalPrice;
       await entityManager.save(newOrder);
@@ -153,5 +178,36 @@ export class UserService {
         orderItems: productItems,
       };
     });
+    return result;
   }
+
+  async cancelOrder(userId: string, orderId: string) {
+    const order = await this.orderRepository.findOne({
+      where: {
+        id: orderId,
+      },
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    if (orderId !== order.id) {
+      throw new BadRequestException("Can't cancel order of other! ");
+    }
+    return this.orderRepository.update(
+      { id: orderId },
+      {
+        status: OrderStatus.CANCELLED,
+      },
+    );
+  }
+
+  async historyOrder(userId: string) {
+    return this.orderRepository.find({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  // async ratingOrder(userId: string, orderId: string);
 }

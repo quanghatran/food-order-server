@@ -6,11 +6,17 @@ import { UserRepository } from '../../repositories/user.repository';
 import { MailModule } from '../mailer/mailer.module';
 import { ProductModule } from '../product/product.module';
 import { StoreModule } from '../store/store.module';
+import { DiscountRepository } from '../../repositories/discount.repository';
+import { OrderRepository } from '../../repositories';
 
 @Module({
   providers: [UserService],
   imports: [
-    TypeOrmModule.forFeature([UserRepository]),
+    TypeOrmModule.forFeature([
+      UserRepository,
+      DiscountRepository,
+      OrderRepository,
+    ]),
     MailModule,
     ProductModule,
     forwardRef(() => StoreModule),

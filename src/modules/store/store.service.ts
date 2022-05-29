@@ -8,13 +8,14 @@ import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
 import * as bcrypt from 'bcrypt';
-import { ProductRepository } from '../../repositories';
+import { OrderRepository, ProductRepository } from '../../repositories';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { getConnection, In } from 'typeorm';
 import { DiscountRepository } from '../../repositories/discount.repository';
 import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
+import { UpdateOrder } from './dto/order.dto';
 
 @Injectable()
 export class StoreService {
@@ -22,6 +23,7 @@ export class StoreService {
     private readonly storeRepository: StoreRepository,
     private readonly productRepository: ProductRepository,
     private readonly discountRepository: DiscountRepository,
+    private readonly orderRepository: OrderRepository,
     private readonly mailService: MailService,
   ) {}
 
@@ -175,8 +177,20 @@ export class StoreService {
     const products = await this.productRepository.find({
       where: { id: In(productIds) },
     });
-    return products.map((product) => product.store);
+    return products.map((product) => product.storeId);
   }
 
-
+  async updateOrder(
+    storeId: string,
+    orderId: string,
+    updateOrder: UpdateOrder,
+  ) {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
+    if (order.storeId !== storeId) {
+      throw new UnauthorizedException('You just can update your order');
+    }
+    return this.orderRepository.update({ id: orderId }, { ...updateOrder });
+  }
 }
