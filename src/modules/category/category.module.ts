@@ -14,5 +14,6 @@ import { StoreModule } from '../store/store.module';
   ],
   controllers: [CategoryController],
   providers: [CategoryService],
+  exports: [CategoryService],
 })
 export class CategoryModule {}

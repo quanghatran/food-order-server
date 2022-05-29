@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ProductService } from '../product/product.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { RatingOrderDto } from './dto/order.dto';
+import { RolesGuard } from 'src/share/guards/roles.guard';
+import { Roles } from 'src/share/decorators/roles.decorator';
+import { Role } from 'src/entities';
+import { GetAllUserDto } from './dto/get-all-user.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -37,6 +42,15 @@ export class UserController {
   @Get('/info')
   getInfo(@GetUser() user) {
     return this.userService.getMe(user.id);
+  }
+  
+  @Get('/all-user')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  getAllUser(@Query() data: GetAllUserDto) {
+    return this.userService.getAllUser(data)
   }
 
   @ApiBearerAuth('JWT-auth')

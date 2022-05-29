@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -20,6 +21,7 @@ import { RolesGuard } from '../../share/guards/roles.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../../share/multer/multer-config';
 import uploadImage from '../../share/multer/uploader';
+import { GetAllCategoryDto } from './dto/get-all-category.dto';
 
 @ApiTags('category')
 @Controller('category')
@@ -52,9 +54,13 @@ export class CategoryController {
     return this.categoryService.createCategory(cate, linkImage);
   }
 
-  @Get('/')
-  getAll() {
-    return this.categoryService.findAll();
+  @Get('/all-category')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  getAll(@Query() data: GetAllCategoryDto) {
+    return this.categoryService.getAll(data);
   }
 
   @Patch('/:id')

@@ -35,9 +35,9 @@ async function bootstrap() {
   // app.useGlobalFilters(new UnknownExceptionsFilter());
   app.useGlobalPipes(new BodyValidationPipe());
 
-  const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis();
-  app.useWebSocketAdapter(redisIoAdapter);
+  // const redisIoAdapter = new RedisIoAdapter(app);
+  // await redisIoAdapter.connectToRedis();
+  // app.useWebSocketAdapter(redisIoAdapter);
 
   initSwagger(app);
 

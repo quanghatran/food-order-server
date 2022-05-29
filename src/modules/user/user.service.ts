@@ -21,9 +21,10 @@ import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { StoreService } from '../store/store.service';
-import { getConnection } from 'typeorm';
+import { getConnection, ILike } from 'typeorm';
 import { ProductService } from '../product/product.service';
 import { DiscountRepository } from '../../repositories/discount.repository';
+import { GetAllUserDto } from './dto/get-all-user.dto';
 
 @Injectable()
 export class UserService {
@@ -64,6 +65,25 @@ export class UserService {
     newUser.email = user.email;
     newUser.password = user.password;
     return await this.userRepository.save(newUser);
+  }
+
+  async getAllUser(data: GetAllUserDto) {
+    const page = data.page || 1;
+    const perPage = data.perPage || 20;
+    const skip = (page - 1) * perPage;
+    const filter = data.filter || '';
+
+    const [result, total] = await this.userRepository.findAndCount({
+      where: { name: ILike(`%${filter}%`) },
+      order: { name: 'ASC' },
+      take: perPage,
+      skip: skip,
+    });
+
+    return {
+      data: result,
+      count: total,
+    };
   }
 
   async activeAccount(id: string) {
