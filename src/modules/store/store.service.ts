@@ -3,7 +3,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CategoryProduct, Discount, Product, Store } from '../../entities';
+import {
+  CategoryProduct,
+  Discount,
+  Product,
+  Status,
+  Store,
+} from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
@@ -15,7 +21,8 @@ import { getConnection, In } from 'typeorm';
 import { DiscountRepository } from '../../repositories/discount.repository';
 import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
-import { UpdateOrder } from './dto/order.dto';
+import { PaginationDto, UpdateOrder } from './dto/order.dto';
+import { UpdateStoreDto } from './dto/store.dto';
 
 @Injectable()
 export class StoreService {
@@ -180,6 +187,20 @@ export class StoreService {
     return products.map((product) => product.storeId);
   }
 
+  async getOrders(storeId: string, pagination: PaginationDto) {
+    const { page = 1, perPage = 20 } = pagination;
+    return this.orderRepository.find({
+      where: {
+        storeId: storeId,
+      },
+      take: perPage,
+      skip: perPage * (page - 1),
+      order: {
+        id: 'DESC',
+      },
+    });
+  }
+
   async updateOrder(
     storeId: string,
     orderId: string,
@@ -192,5 +213,29 @@ export class StoreService {
       throw new UnauthorizedException('You just can update your order');
     }
     return this.orderRepository.update({ id: orderId }, { ...updateOrder });
+  }
+
+  async updateStore(
+    storeId: string,
+    updateStoreDto: UpdateStoreDto,
+    images: string[],
+  ) {
+    return images.length > 0
+      ? this.storeRepository.update(
+          { id: storeId },
+          { ...updateStoreDto, images },
+        )
+      : this.storeRepository.update(
+          { id: storeId },
+          { ...updateStoreDto, images },
+        );
+  }
+
+  async editStoreStatus(storeId: string, status: Status) {
+    return this.storeRepository.update({ id: storeId }, { status });
+  }
+
+  async deleteStore(storeId: string) {
+    return this.storeRepository.delete({ id: storeId });
   }
 }

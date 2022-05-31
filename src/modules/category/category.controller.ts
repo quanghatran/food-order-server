@@ -59,6 +59,11 @@ export class CategoryController {
     return this.categoryService.getAll(data);
   }
 
+  @Get('/:id')
+  getById(@Param('id') id: string) {
+    return this.categoryService.findById(id);
+  }
+
   @Patch('/:id')
   @ApiBearerAuth('JWT-auth')
   @ApiConsumes('multipart/form-data')

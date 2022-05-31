@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -24,7 +25,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
-import { UpdateOrder } from './dto/order.dto';
+import { PaginationDto, UpdateOrder } from './dto/order.dto';
+import { strict } from 'assert';
+import { UpdateStatusDto, UpdateStoreDto } from './dto/store.dto';
 
 @ApiTags('Store')
 @Controller('store')
@@ -181,6 +184,15 @@ export class StoreController {
     return this.storeService.editDiscount(user.id, id, updateDiscountDto);
   }
 
+  @Get('/order')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  getAllOrder(@Query() pagination: PaginationDto, @GetUser() store) {
+    return this.storeService.getOrders(store.id, pagination);
+  }
+
   @Patch('/order/update/:id')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
@@ -196,5 +208,68 @@ export class StoreController {
       success: true,
       message: 'update order successfully!',
     };
+  }
+
+  @Patch('/update-store')
+  @ApiBearerAuth('JWT-auth')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: 'multipart/form-data',
+    schema: {
+      type: 'object',
+      properties: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+          nullable: true,
+        },
+        name: { type: 'string', nullable: true },
+        phoneNumber: { type: 'string', nullable: true },
+        address: { type: 'number', nullable: true },
+        timeOpen: { type: 'string', nullable: true },
+        timeClose: { type: 'string', nullable: true },
+      },
+    },
+  })
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FilesInterceptor('images', 10, multerOptions))
+  async updateStore(
+    @UploadedFiles() images,
+    @Param('productId') productId: string,
+    @Body() updateStoreDto: UpdateStoreDto,
+    @GetUser() store,
+  ) {
+    const linksImage = [];
+    for (const image of images) {
+      const link = await uploadImage(image.path);
+      linksImage.push(link);
+    }
+    return this.storeService.updateStore(store.id, updateStoreDto, linksImage);
+  }
+
+  @Patch('/edit-status/:storeId')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  async editStoreStatus(
+    @Param('storeId') storeId: string,
+    @Body() status: UpdateStatusDto,
+  ) {
+    return this.storeService.editStoreStatus(storeId, status.status);
+  }
+
+  @Delete('/delete/:storeId')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  async delete(@Param('storeId') storeId: string) {
+    return this.storeService.deleteStore(storeId);
   }
 }

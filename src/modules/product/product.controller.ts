@@ -1,6 +1,12 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ApiTags } from '@nestjs/swagger';
+<<<<<<< HEAD
+=======
+import { GetAllProductDto } from './dto/get-all-product.dto';
+import { ProductCaregoryDto } from './dto/product-category.dto';
+import { ProductStoreDto } from './dto/product-store.dto';
+>>>>>>> 299eb0c... api
 
 @ApiTags('Products')
 @Controller('product')
@@ -36,6 +42,11 @@ export class ProductController {
   @Get('/search-by-store-name')
   searchByStoreName(@Query('q') q: string) {
     return this.productService.searchByNameStore(q.trim());
+  }
+
+  @Get('/search')
+  search(@Query() q: string) {
+    return this.productService.search(q);
   }
 
   @Get('/:productId')

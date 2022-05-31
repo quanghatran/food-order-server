@@ -35,6 +35,10 @@ export class CategoryService {
     };
   }
 
+  findById(id: string) {
+    return this.categoryRepository.findOne({ id });
+  }
+
   edit(id: string, createCategoryDto: CreateCategoryDto, image: string) {
     return image !== ''
       ? this.categoryRepository.update(

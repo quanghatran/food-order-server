@@ -146,6 +146,16 @@ export class ProductService {
     return products;
   }
 
+  async search(q: string) {
+    const products = await this.searchByNameProduct(q);
+    const stores = await this.storeRepository
+      .createQueryBuilder()
+      .select()
+      .where('name ILIKE :q', { q: `%${q}%` })
+      .getMany();
+    return { stores, products };
+  }
+
   async getProductDetails(productId: string) {
     return getConnection().transaction(async (entityManager) => {
       const product = await entityManager.find(Product, {

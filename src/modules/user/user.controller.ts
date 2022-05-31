@@ -44,14 +44,14 @@ export class UserController {
   getInfo(@GetUser() user) {
     return this.userService.getMe(user.id);
   }
-  
+
   @Get('/all-user')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @UseGuards(JwtGuard)
-  getAllUser(@Query() data: GetAllUserDto) {
-    return this.userService.getAllUser(data)
+  getAllUser(@Query() getAllUserDto: GetAllUserDto) {
+    return this.userService.getAllUser(getAllUserDto);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -72,6 +72,11 @@ export class UserController {
     const userProfile = await this.userService.findById(user.id);
     const address = userProfile.address;
     return this.productService.nearestProduct(address);
+  }
+
+  @Get('/discount/:storeId')
+  getDisCountOfStore(@Param('storeId') storeId: string) {
+    return this.userService.getDisCountOfStore(storeId);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -146,5 +151,14 @@ export class UserController {
   @Get('/order/history')
   async historyOrder(@GetUser() user) {
     return this.userService.historyOrder(user.id);
+  }
+
+  @Delete('/delete/:userId')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  async delete(@Param('userId') userId: string) {
+    return this.userService.deleteUser(userId);
   }
 }

@@ -36,7 +36,7 @@ export class Store {
   @Column('text', { array: true, nullable: true })
   images: string[];
 
-  @Column({ type: 'enum', enum: ['actice', 'inactive'], default: 'inactive' })
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
   status: Status;
 
   @Column({ type: 'float', default: 0 })
@@ -45,11 +45,11 @@ export class Store {
   @Column({ name: 'rate_count', type: 'int', default: 0 })
   rateCount: number;
 
-  @Column({ type: 'time', nullable: true, name: 'time_open' })
-  timeOpen: Date;
+  @Column({ type: 'varchar', nullable: true, name: 'time_open' })
+  timeOpen: string;
 
-  @Column({ type: 'time', nullable: true, name: 'time_close' })
-  timeClose: Date;
+  @Column({ type: 'varchar', nullable: true, name: 'time_close' })
+  timeClose: string;
 
   @Column({ name: 'is_verify', default: false })
   isVerify: boolean;
