@@ -198,7 +198,7 @@ export class StoreController {
     return this.storeService.editDiscount(user.id, id, updateDiscountDto);
   }
 
-  @Patch('/discount/delete/:id')
+  @Delete('/discount/delete/:id')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
   @Roles(Role.Store)
