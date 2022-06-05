@@ -5,16 +5,21 @@ import {
 } from '@nestjs/common';
 import {
   CategoryProduct,
-  Discount,
+  OrderStatus,
   Product,
   Status,
   Store,
+  StoreDetail,
 } from '../../entities';
 import { MailService } from '../mailer/mailer.service';
 import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
 import * as bcrypt from 'bcrypt';
-import { OrderRepository, ProductRepository } from '../../repositories';
+import {
+  OrderRepository,
+  ProductRepository,
+  StoreDetailRepository,
+} from '../../repositories';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { getConnection, In } from 'typeorm';
@@ -23,6 +28,7 @@ import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
 import { PaginationDto, UpdateOrder } from './dto/order.dto';
 import { UpdateStoreDto } from './dto/store.dto';
+import { Cron } from "@nestjs/schedule";
 
 @Injectable()
 export class StoreService {
@@ -31,8 +37,27 @@ export class StoreService {
     private readonly productRepository: ProductRepository,
     private readonly discountRepository: DiscountRepository,
     private readonly orderRepository: OrderRepository,
+    private readonly storeDetailRepository: StoreDetailRepository,
     private readonly mailService: MailService,
   ) {}
+
+  async getStores() {
+    return this.storeRepository.find({
+      where: { isVerify: true },
+      select: [
+        'id',
+        'name',
+        'email',
+        'phoneNumber',
+        'address',
+        'images',
+        'status',
+        'star',
+        'timeOpen',
+        'timeClose',
+      ],
+    });
+  }
 
   async findUserByPhoneNumber(phoneNumber: string) {
     return this.storeRepository.findOne({
@@ -134,7 +159,7 @@ export class StoreService {
             { id: productId },
             { ...updateProductDto },
           );
-    return updated;
+    return this.productRepository.findOne({ id: productId });
   }
 
   async deleteProduct(productId: string, storeId: string) {
@@ -146,6 +171,14 @@ export class StoreService {
       throw new UnauthorizedException('You can update your products');
     }
     return this.productRepository.delete({ id: productId });
+  }
+
+  async getDiscounts(storeId: string) {
+    return this.discountRepository.find({
+      where: {
+        storeId,
+      },
+    });
   }
 
   async addDiscount(storeId: string, createDiscountDto: CreateDiscountDto) {
@@ -178,6 +211,17 @@ export class StoreService {
         ...updateDiscountDto,
       },
     );
+  }
+
+  async deleteDiscount(storeId: string, discountId: string) {
+    const discount = await this.discountRepository.findOne({
+      id: discountId,
+    });
+    if (!discount || discount.storeId !== storeId)
+      throw new BadRequestException(
+        'Discount is not exist or it not not owned by you',
+      );
+    return this.discountRepository.delete({ id: discountId });
   }
 
   async findStoresByProductIds(productIds: string[]) {
@@ -237,5 +281,58 @@ export class StoreService {
 
   async deleteStore(storeId: string) {
     return this.storeRepository.delete({ id: storeId });
+  }
+
+  @Cron('0 0 1 * * *')
+  async calculateStoreDetails() {
+    const stores = await this.storeRepository.find({
+      where: {},
+      select: ['id'],
+    });
+
+    const storeIds = stores.map((store) => store.id);
+    console.log(storeIds);
+    for (const storeId of storeIds) {
+      // calculate num order
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      const filters = {
+        storeId,
+        before: lastDay.toISOString() as any,
+        after: firstDay.toISOString() as any,
+      };
+      const orders = await this.orderRepository
+        .createQueryBuilder('order')
+        .select()
+        .where('order.storeId = :storeId')
+        .andWhere('order.createdAt >= :after')
+        .andWhere('order.createdAt < :before')
+        .setParameters(filters)
+        .getMany();
+      let numOrder = 0;
+      let numOrderSuccess = 0;
+      let numOrderFail = 0;
+      let totalMoney = 0;
+      const isPayment = false;
+      orders.forEach((order) => {
+        numOrder += 1;
+        if (order.status === OrderStatus.SUCCESS) {
+          numOrderSuccess += 1;
+          totalMoney += order.totalPrice;
+        }
+        if (order.status === OrderStatus.FAILED) {
+          numOrderFail += 1;
+        }
+      });
+      const storeDetails = new StoreDetail();
+      storeDetails.numOrder = numOrder;
+      storeDetails.numOrderSuccess = numOrderSuccess;
+      storeDetails.numOrderFail = numOrderFail;
+      storeDetails.totalMoney = totalMoney;
+      storeDetails.isPayment = isPayment;
+      await this.storeDetailRepository.save(storeDetails);
+    }
   }
 }

@@ -34,11 +34,16 @@ import { UpdateStatusDto, UpdateStoreDto } from './dto/store.dto';
 export class StoreController {
   constructor(private readonly storeService: StoreService) {}
 
+  @Get('/')
+  getStores() {
+    return this.storeService.getStores();
+  }
+
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtGuard)
   @Get('/info')
   getInfo(@GetUser() user) {
-    return user;
+    return this.storeService.findStore(user.id);
   }
 
   @Get('/get-owner-products')
@@ -159,6 +164,15 @@ export class StoreController {
     return this.storeService.deleteProduct(productId, user.id);
   }
 
+  @Get('/discount')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  getDiscounts(@GetUser() store) {
+    return this.storeService.getDiscounts(store.id);
+  }
+
   @Post('/discount/create')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
@@ -182,6 +196,15 @@ export class StoreController {
     @GetUser() user,
   ) {
     return this.storeService.editDiscount(user.id, id, updateDiscountDto);
+  }
+
+  @Patch('/discount/delete/:id')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  deleteDiscount(@Param('id') id: string, @GetUser() user) {
+    return this.storeService.deleteDiscount(user.id, id);
   }
 
   @Get('/order')

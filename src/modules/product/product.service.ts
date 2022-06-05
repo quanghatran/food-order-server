@@ -8,12 +8,12 @@ import {
   ProductRepository,
   StoreRepository,
 } from '../../repositories';
-import { ILike, In, getConnection } from 'typeorm';
+import { getConnection, ILike, In } from 'typeorm';
 import { GetAllProductDto } from './dto/get-all-product.dto';
 import { ProductCaregoryDto } from './dto/product-category.dto';
 import { CategoryProductRepository } from 'src/repositories/category-product.repository';
 import { ProductStoreDto } from './dto/product-store.dto';
-import { OrderItem, Product, Rate, Store } from '../../entities';
+import { OrderItem, Product, Rate, Status, Store } from '../../entities';
 
 @Injectable()
 export class ProductService {
@@ -180,5 +180,31 @@ export class ProductService {
       });
       return { product, rates };
     });
+  }
+
+  async getTopProducts(limit = 8) {
+    return this.productRepository
+      .createQueryBuilder('product')
+      .where({ status: Status.ACTIVE })
+      .select([
+        'product.id',
+        'product.name',
+        'product.images',
+        'product.description',
+        'product.price',
+        'product.boughtNum',
+        'store.id',
+        'store.name',
+        'store.email',
+        'store.address',
+        'store.star',
+        'store.images',
+        'store.timeOpen',
+        'store.timeClose',
+      ])
+      .limit(limit)
+      .leftJoin('product.store', 'store')
+      .orderBy('product.boughtNum', 'DESC')
+      .getMany();
   }
 }

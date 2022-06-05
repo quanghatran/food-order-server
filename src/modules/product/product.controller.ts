@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { ApiTags } from '@nestjs/swagger';
 <<<<<<< HEAD
@@ -49,8 +49,16 @@ export class ProductController {
     return this.productService.search(q);
   }
 
+  @Get('/top-product')
+  getTopProduct(@Query('limit', ParseIntPipe) limit: number) {
+    console.log(limit);
+    return this.productService.getTopProducts(limit);
+  }
+
   @Get('/:productId')
   productDetail(@Param('productId') productId: string) {
     return this.productService.getProductDetails(productId);
   }
+
+
 }

@@ -4,7 +4,11 @@ import { StoreService } from './store.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mailer/mailer.module';
 import { StoreRepository } from 'src/repositories/store.repository';
-import { OrderRepository, ProductRepository } from '../../repositories';
+import {
+  OrderRepository,
+  ProductRepository,
+  StoreDetailRepository,
+} from '../../repositories';
 import { UserModule } from '../user/user.module';
 import { DiscountRepository } from '../../repositories/discount.repository';
 
@@ -16,6 +20,7 @@ import { DiscountRepository } from '../../repositories/discount.repository';
       ProductRepository,
       DiscountRepository,
       OrderRepository,
+      StoreDetailRepository,
     ]),
     MailModule,
     forwardRef(() => UserModule),

@@ -74,6 +74,7 @@ export class UserController {
     return this.productService.nearestProduct(address);
   }
 
+
   @Get('/discount/:storeId')
   getDisCountOfStore(@Param('storeId') storeId: string) {
     return this.userService.getDisCountOfStore(storeId);
