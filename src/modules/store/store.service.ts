@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import {
   CategoryProduct,
+  Notification,
   OrderStatus,
   Product,
   Status,
@@ -247,6 +248,32 @@ export class StoreService {
     });
   }
 
+  async getOrderDetails(orderId: string, storeId: string) {
+    return this.orderRepository
+      .createQueryBuilder('order')
+      .select([
+        'order.id',
+        'order.status',
+        'order.paymentType',
+        'order.isPayment',
+        'order.totalPrice',
+        'order.timeReceive',
+        'order.storeId',
+        'discount.id',
+        'discount.discountType',
+        'discount.discountPercent',
+        'discount.discountPrice',
+        'user.name',
+        'user.phoneNumber',
+        'user.email',
+      ])
+      .where('order.id = :orderId', { orderId })
+      .andWhere('order.storeId = :storeId', { storeId })
+      .leftJoin('order.user', 'user')
+      .leftJoin('order.discount', 'discount')
+      .execute();
+  }
+
   async updateOrder(
     storeId: string,
     orderId: string,
@@ -258,7 +285,12 @@ export class StoreService {
     if (order.storeId !== storeId) {
       throw new UnauthorizedException('You just can update your order');
     }
-    return this.orderRepository.update({ id: orderId }, { ...updateOrder });
+    const notification = new Notification();
+    notification.message = `Your order was ${updateOrder.status}`;
+    notification.storeId = order.userId;
+    await this.notificationsRepository.save(notification);
+    await this.orderRepository.update({ id: orderId }, { ...updateOrder });
+    return this.orderRepository.findOne({ id: orderId });
   }
 
   async updateStore(
@@ -354,6 +386,10 @@ export class StoreService {
     for (const storeDetail of storeDetails) {
       const money = storeDetail.totalMoney / 10;
       const content = `Please pay ${money} fee for this month before 5th day`;
+      const notification = new Notification();
+      notification.message = content;
+      notification.storeId = storeDetail.storeId;
+      await this.notificationsRepository.save(notification);
       await this.mailService.sendMail(storeDetail.store.email, content);
     }
   }
@@ -373,6 +409,10 @@ export class StoreService {
     for (const storeDetail of storeDetails) {
       const money = (storeDetail.totalMoney / 100) * 20;
       const content = `Sorry, your store was ban, pay ${money} fee to us and contact to admin to unban`;
+      const notification = new Notification();
+      notification.message = content;
+      notification.storeId = storeDetail.storeId;
+      await this.notificationsRepository.save(notification);
       await this.storeRepository.update(
         { id: storeDetail.storeId },
         {
@@ -381,5 +421,16 @@ export class StoreService {
       );
       await this.mailService.sendMail(storeDetail.store.email, content);
     }
+  }
+
+  async getNotifications(storeId: string) {
+    return this.notificationsRepository.find({
+      where: {
+        storeId,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 }

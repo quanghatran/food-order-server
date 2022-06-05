@@ -15,6 +15,7 @@ import { CreateUserDto } from '../auth/dto/create-user.dto';
 import {
   Discount,
   DiscountType,
+  Notification,
   Order,
   OrderItem,
   OrderStatus,
@@ -216,6 +217,10 @@ export class UserService {
       }
       newOrder.totalPrice = totalPrice;
       await entityManager.save(newOrder);
+      const notificationToStore = new Notification();
+      notificationToStore.storeId = newOrder.storeId;
+      notificationToStore.message = `new order`;
+      await this.notificationsRepository.save(notificationToStore);
       return {
         order: newOrder,
         orderItems: productItems,
@@ -236,12 +241,17 @@ export class UserService {
     if (orderId !== order.id) {
       throw new BadRequestException("Can't cancel order of other! ");
     }
-    return this.orderRepository.update(
+    await this.orderRepository.update(
       { id: orderId },
       {
         status: OrderStatus.CANCELLED,
       },
     );
+    const notificationToStore = new Notification();
+    notificationToStore.storeId = order.storeId;
+    notificationToStore.message = `order ${orderId} was cancel by user`;
+    await this.notificationsRepository.save(notificationToStore);
+    return this.orderRepository.findOne({ id: orderId });
   }
 
   async historyOrder(userId: string) {
@@ -309,5 +319,16 @@ export class UserService {
   async editStoreDetails(id: string, isPayment: boolean) {
     await this.storeDetailRepository.update({ id }, { isPayment });
     return this.storeDetailRepository.findOne({ id });
+  }
+
+  async getNotifications(userId: string) {
+    return this.notificationsRepository.find({
+      where: {
+        userId,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 }

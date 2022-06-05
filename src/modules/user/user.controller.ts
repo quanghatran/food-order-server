@@ -176,7 +176,17 @@ export class UserController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @UseGuards(JwtGuard)
-  async editStoreDetails(@Param('id') id: string, @Body('isPayment') isPayment: boolean) {
+  async editStoreDetails(
+    @Param('id') id: string,
+    @Body('isPayment') isPayment: boolean,
+  ) {
     return this.userService.editStoreDetails(id, isPayment);
+  }
+
+  @Get('/notifications')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(JwtGuard)
+  getNotification(@GetUser() user) {
+    return this.userService.getNotifications(user.id);
   }
 }

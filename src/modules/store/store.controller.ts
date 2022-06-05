@@ -216,6 +216,15 @@ export class StoreController {
     return this.storeService.getOrders(store.id, pagination);
   }
 
+  @Get('/order/:orderId')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Store)
+  @UseGuards(JwtGuard)
+  getOrders(@Param('orderId') orderId: string, @GetUser() store) {
+    return this.storeService.getOrderDetails(orderId, store.id);
+  }
+
   @Patch('/order/update/:id')
   @ApiBearerAuth('JWT-auth')
   @UseGuards(RolesGuard)
@@ -294,5 +303,12 @@ export class StoreController {
   @UseGuards(JwtGuard)
   async delete(@Param('storeId') storeId: string) {
     return this.storeService.deleteStore(storeId);
+  }
+
+  @Get('/notifications')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(JwtGuard)
+  getNotification(@GetUser() store) {
+    return this.storeService.getNotifications(store.id);
   }
 }

@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -14,10 +15,18 @@ export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column('uuid', { nullable: true })
+  userId: string;
+
+  @Column('uuid', { nullable: true })
+  storeId: string;
+
   @ManyToOne(() => User, (user) => user.notifications)
+  @JoinColumn({ name: 'userId' })
   user: string;
 
   @ManyToOne(() => Store, (store) => store.notifications)
+  @JoinColumn({ name: 'storeId' })
   store: string;
 
   @Column({ nullable: false })
