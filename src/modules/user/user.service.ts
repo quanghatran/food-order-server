@@ -5,7 +5,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderRepository, UserRepository } from 'src/repositories';
+import {
+  NotificationsRepository,
+  OrderRepository,
+  StoreDetailRepository,
+  UserRepository,
+} from 'src/repositories';
 import { CreateUserDto } from '../auth/dto/create-user.dto';
 import {
   Discount,
@@ -37,6 +42,8 @@ export class UserService {
     private readonly mailService: MailService,
     @Inject(forwardRef(() => StoreService))
     private readonly storeService: StoreService,
+    private readonly storeDetailRepository: StoreDetailRepository,
+    private readonly notificationsRepository: NotificationsRepository,
     private readonly productService: ProductService,
   ) {}
 
@@ -289,5 +296,18 @@ export class UserService {
       },
     );
     return result;
+  }
+
+  async getStoreDetails() {
+    return this.storeDetailRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async editStoreDetails(id: string, isPayment: boolean) {
+    await this.storeDetailRepository.update({ id }, { isPayment });
+    return this.storeDetailRepository.findOne({ id });
   }
 }

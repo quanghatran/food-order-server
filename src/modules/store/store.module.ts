@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from '../mailer/mailer.module';
 import { StoreRepository } from 'src/repositories/store.repository';
 import {
+  NotificationsRepository,
   OrderRepository,
   ProductRepository,
   StoreDetailRepository,
@@ -21,6 +22,7 @@ import { DiscountRepository } from '../../repositories/discount.repository';
       DiscountRepository,
       OrderRepository,
       StoreDetailRepository,
+      NotificationsRepository,
     ]),
     MailModule,
     forwardRef(() => UserModule),

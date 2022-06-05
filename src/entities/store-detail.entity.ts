@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -29,7 +30,11 @@ export class StoreDetail {
   @Column({ name: 'is_payment', default: false })
   isPayment: boolean;
 
+  @Column('uuid', { nullable: false })
+  storeId: string;
+
   @ManyToOne(() => Store, (store) => store.details)
+  @JoinColumn({ name: 'storeId' })
   store: Store;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

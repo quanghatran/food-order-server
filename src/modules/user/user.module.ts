@@ -7,7 +7,11 @@ import { MailModule } from '../mailer/mailer.module';
 import { ProductModule } from '../product/product.module';
 import { StoreModule } from '../store/store.module';
 import { DiscountRepository } from '../../repositories/discount.repository';
-import { OrderRepository } from '../../repositories';
+import {
+  NotificationsRepository,
+  OrderRepository,
+  StoreDetailRepository,
+} from '../../repositories';
 
 @Module({
   providers: [UserService],
@@ -16,6 +20,8 @@ import { OrderRepository } from '../../repositories';
       UserRepository,
       DiscountRepository,
       OrderRepository,
+      StoreDetailRepository,
+      NotificationsRepository,
     ]),
     MailModule,
     ProductModule,

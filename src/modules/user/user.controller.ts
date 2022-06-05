@@ -74,7 +74,6 @@ export class UserController {
     return this.productService.nearestProduct(address);
   }
 
-
   @Get('/discount/:storeId')
   getDisCountOfStore(@Param('storeId') storeId: string) {
     return this.userService.getDisCountOfStore(storeId);
@@ -161,5 +160,23 @@ export class UserController {
   @UseGuards(JwtGuard)
   async delete(@Param('userId') userId: string) {
     return this.userService.deleteUser(userId);
+  }
+
+  @Get('/store-details')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  async getStoreDetails() {
+    return this.userService.getStoreDetails();
+  }
+
+  @Patch('/store-details/:id')
+  @ApiBearerAuth('Jwt-auth')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Admin)
+  @UseGuards(JwtGuard)
+  async editStoreDetails(@Param('id') id: string, @Body('isPayment') isPayment: boolean) {
+    return this.userService.editStoreDetails(id, isPayment);
   }
 }

@@ -16,19 +16,20 @@ import { StoreRepository } from 'src/repositories/store.repository';
 import { CreateStoreDto } from '../auth/dto/create-store.dto';
 import * as bcrypt from 'bcrypt';
 import {
+  NotificationsRepository,
   OrderRepository,
   ProductRepository,
   StoreDetailRepository,
 } from '../../repositories';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { getConnection, In } from 'typeorm';
+import { getConnection, In, MoreThan } from 'typeorm';
 import { DiscountRepository } from '../../repositories/discount.repository';
 import { CreateDiscountDto } from './dto/create-discount.dto';
 import { UpdateDiscountDto } from './dto/update-discount.dto';
 import { PaginationDto, UpdateOrder } from './dto/order.dto';
 import { UpdateStoreDto } from './dto/store.dto';
-import { Cron } from "@nestjs/schedule";
+import { Cron, Interval } from '@nestjs/schedule';
 
 @Injectable()
 export class StoreService {
@@ -38,6 +39,7 @@ export class StoreService {
     private readonly discountRepository: DiscountRepository,
     private readonly orderRepository: OrderRepository,
     private readonly storeDetailRepository: StoreDetailRepository,
+    private readonly notificationsRepository: NotificationsRepository,
     private readonly mailService: MailService,
   ) {}
 
@@ -283,7 +285,7 @@ export class StoreService {
     return this.storeRepository.delete({ id: storeId });
   }
 
-  @Cron('0 0 1 * * *')
+  @Cron('0 0 1 * *')
   async calculateStoreDetails() {
     const stores = await this.storeRepository.find({
       where: {},
@@ -320,7 +322,7 @@ export class StoreService {
         numOrder += 1;
         if (order.status === OrderStatus.SUCCESS) {
           numOrderSuccess += 1;
-          totalMoney += order.totalPrice;
+          totalMoney += Number(order.totalPrice);
         }
         if (order.status === OrderStatus.FAILED) {
           numOrderFail += 1;
@@ -332,7 +334,52 @@ export class StoreService {
       storeDetails.numOrderFail = numOrderFail;
       storeDetails.totalMoney = totalMoney;
       storeDetails.isPayment = isPayment;
+      storeDetails.storeId = storeId;
       await this.storeDetailRepository.save(storeDetails);
+    }
+  }
+
+  @Cron('0 8,20 1,2,3,4,5 * *')
+  async sendMailToStoreNotPayment() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 0);
+    const storeDetails = await this.storeDetailRepository.find({
+      where: {
+        isPayment: false,
+        createdAt: MoreThan(firstDay),
+      },
+      relations: ['store'],
+    });
+
+    for (const storeDetail of storeDetails) {
+      const money = storeDetail.totalMoney / 10;
+      const content = `Please pay ${money} fee for this month before 5th day`;
+      await this.mailService.sendMail(storeDetail.store.email, content);
+    }
+  }
+
+  @Cron('0 0 6,7,8,9,10 * *')
+  async banStoreNotPayment() {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 0);
+    const storeDetails = await this.storeDetailRepository.find({
+      where: {
+        isPayment: false,
+        createdAt: MoreThan(firstDay),
+      },
+      relations: ['store'],
+    });
+
+    for (const storeDetail of storeDetails) {
+      const money = (storeDetail.totalMoney / 100) * 20;
+      const content = `Sorry, your store was ban, pay ${money} fee to us and contact to admin to unban`;
+      await this.storeRepository.update(
+        { id: storeDetail.storeId },
+        {
+          status: Status.INACTIVE,
+        },
+      );
+      await this.mailService.sendMail(storeDetail.store.email, content);
     }
   }
 }
