@@ -1,12 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsOptional } from 'class-validator';
 
 export class GetAllProductDto {
-  @ApiProperty({ nullable: true })
-  filter: string;
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  filter?: string;
 
-  @ApiProperty({ nullable: true })
-  page: number;
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  page?: number;
 
-  @ApiProperty({ nullable: true })
-  perPage: number;
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  perPage?: number;
 }

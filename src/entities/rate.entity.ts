@@ -5,9 +5,9 @@ import {
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
-} from "typeorm";
-import { Order } from "./order.entity";
+  UpdateDateColumn,
+} from 'typeorm';
+import { Order } from './order.entity';
 
 @Entity('rates')
 export class Rate {
@@ -20,11 +20,14 @@ export class Rate {
   @Column({ nullable: true })
   content: string;
 
-  @Column('text', { array: true })
+  @Column('text', { array: true, nullable: true })
   images: string[];
 
+  @Column('uuid', { nullable: false })
+  orderId: string;
+
   @OneToOne(() => Order)
-  @JoinColumn()
+  @JoinColumn({ name: 'orderId' })
   order: Order;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })

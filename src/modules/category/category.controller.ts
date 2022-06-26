@@ -55,10 +55,6 @@ export class CategoryController {
   }
 
   @Get('/all-category')
-  @ApiBearerAuth('JWT-auth')
-  @UseGuards(RolesGuard)
-  @Roles(Role.Admin)
-  @UseGuards(JwtGuard)
   getAll(@Query() data: GetAllCategoryDto) {
     return this.categoryService.getAll(data);
   }

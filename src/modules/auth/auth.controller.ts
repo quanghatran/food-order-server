@@ -11,9 +11,9 @@ import {
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local.guard';
-import { CredentialsDto } from './dto/credentials.dto';
+import { CredentialsDto, PasswordDto } from './dto/credentials.dto';
 import { GetUser } from 'src/share/decorators/get-user.decorator';
 import { JwtGuard } from './guards/jwt.guard';
 import { EmailDto } from './dto/email.dto';
@@ -94,7 +94,7 @@ export class AuthController {
     if (!user || user.isVerify) {
       throw new BadRequestException("Email dosen't exist or already active!");
     }
-    this.authService.mailAuthenticateUser(user);
+    await this.authService.mailAuthenticateUser(user);
     return {
       success: true,
       message: 'Please active account by verify link in your email!',
@@ -107,9 +107,9 @@ export class AuthController {
       (await this.userService.findUserByEmail(email.email)) ||
       (await this.storeService.findUserByEmail(email.email));
     if (!user || user.isVerify) {
-      throw new BadRequestException("Email dosen't exist or already active!");
+      throw new BadRequestException('Email not exist or already active!');
     }
-    this.authService.mailForgetPassword(user);
+    await this.authService.mailForgetPassword(user);
     return {
       success: true,
       message: 'Check your mail to reset password!',
@@ -139,8 +139,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtGuard)
   @Get('/user/reset-password')
-  async resetUserAccount(@GetUser() user, @Body('password') password: string) {
-    await this.userService.resetPassword(user.id, password);
+  async resetUserAccount(@GetUser() user, @Body() passwordDto: PasswordDto) {
+    await this.userService.resetPassword(user.id, passwordDto.password);
     return {
       success: true,
     };
@@ -149,8 +149,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtGuard)
   @Get('/store/reset-password')
-  async resetStoreAccount(@GetUser() user, @Body('password') password: string) {
-    await this.storeService.resetPassword(user.id, password);
+  async resetStoreAccount(@GetUser() user, @Body() passwordDto: PasswordDto) {
+    await this.storeService.resetPassword(user.id, passwordDto.password);
     return {
       success: true,
     };
@@ -159,7 +159,6 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(@GetUser() user, @Body() credential: CredentialsDto) {
-
     return this.authService.login(user);
   }
 }

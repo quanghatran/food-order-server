@@ -8,13 +8,12 @@ import {
   ProductRepository,
   StoreRepository,
 } from '../../repositories';
-import { Store } from '../../entities';
-import { ILike, In } from 'typeorm';
+import { ILike, In, getConnection } from 'typeorm';
 import { GetAllProductDto } from './dto/get-all-product.dto';
 import { ProductCaregoryDto } from './dto/product-category.dto';
 import { CategoryProductRepository } from 'src/repositories/category-product.repository';
-import { NotFoundError } from 'rxjs';
 import { ProductStoreDto } from './dto/product-store.dto';
+import { OrderItem, Product, Rate, Store } from '../../entities';
 
 @Injectable()
 export class ProductService {
@@ -145,5 +144,31 @@ export class ProductService {
       },
     });
     return products;
+  }
+
+  async getProductDetails(productId: string) {
+    return getConnection().transaction(async (entityManager) => {
+      const product = await entityManager.find(Product, {
+        where: {
+          id: productId,
+        },
+      });
+
+      const orders = await entityManager.find(OrderItem, {
+        where: {
+          productId: productId,
+        },
+        relations: ['order'],
+        select: ['order'],
+      });
+
+      const orderIds = orders.map((order) => order.order.id);
+      const rates = await entityManager.find(Rate, {
+        where: {
+          orderId: In(orderIds),
+        },
+      });
+      return { product, rates };
+    });
   }
 }

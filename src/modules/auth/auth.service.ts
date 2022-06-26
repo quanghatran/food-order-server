@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
@@ -84,6 +88,10 @@ export class AuthService {
     };
 
     const role = user.role ? user.role : Role.Store;
+    const isVerify = user.isVerify;
+    if (!isVerify) {
+      throw new UnauthorizedException('User is not verify');
+    }
     return {
       accessToken: this.jwtService.sign(payload),
       user: { ...payload, role },

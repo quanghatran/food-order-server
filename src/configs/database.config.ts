@@ -28,7 +28,7 @@ export const typeOrmOptions: TypeOrmModuleAsyncOptions = {
   useFactory: () => {
     return {
       ...defaultConfig,
-      synchronize: false,
+      synchronize: true,
       logger: 'debug',
     } as TypeOrmModuleOptions;
   },

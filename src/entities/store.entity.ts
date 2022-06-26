@@ -42,6 +42,9 @@ export class Store {
   @Column({ type: 'float', default: 0 })
   star: number;
 
+  @Column({ name: 'rate_count', type: 'int', default: 0 })
+  rateCount: number;
+
   @Column({ type: 'time', nullable: true, name: 'time_open' })
   timeOpen: Date;
 
